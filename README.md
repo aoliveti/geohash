@@ -1,4 +1,10 @@
 # GeoHash
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/aoliveti/geohash)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/aoliveti/geohash/go.yaml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/aoliveti/geohash)](https://pkg.go.dev/github.com/aoliveti/geohash)
+[![codecov](https://codecov.io/gh/aoliveti/geohash/graph/badge.svg?token=TINZl3wzTv)](https://codecov.io/gh/aoliveti/geohash)
+[![Go Report Card](https://goreportcard.com/badge/github.com/aoliveti/geohash)](https://goreportcard.com/report/github.com/aoliveti/geohash)
+![GitHub License](https://img.shields.io/github/license/aoliveti/geohash)
 
 A lightweight, high-performance Go package for GeoHash operations:
 
