@@ -760,21 +760,48 @@ func TestNeighbourhoods(t *testing.T) {
 			wantError: assert.Error,
 		},
 		{
-			name:      "Extremes zzzzz - At limit of latitude and longitude",
-			hash:      "zzzzz",
-			want:      []string{"pbpbp", "00000", "bpbpb", "bpbp8", "zzzzx", "zzzzw", "zzzzy", "pbpbn"},
+			name: "Extremes zzzzz - At limit of latitude and longitude (North-East)",
+			hash: "zzzzz",
+			want: []string{
+				"zzzzz", // N  (Clamped: hitting the North Pole ceiling, stays at zzzzz)
+				"bpbpb", // NE (Lat clamped at North, Lon wraps to West -> bpbpb)
+				"bpbpb", // E  (Lon wraps to West -> bpbpb)
+				"bpbp8", // SE (Lat goes South, Lon wraps to West -> bpbp8)
+				"zzzzx", // S  (Standard movement South)
+				"zzzzw", // SW (Standard movement South-West)
+				"zzzzy", // W  (Standard movement West)
+				"zzzzy", // NW (Lat clamped at North, Lon moves West -> zzzzy)
+			},
 			wantError: assert.NoError,
 		},
 		{
-			name:      "Extremes 0 - At limit of latitude and longitude",
-			hash:      "0",
-			want:      []string{"2", "3", "1", "c", "b", "z", "p", "r"},
+			name: "Extremes 0 - At limit of latitude and longitude (South-West)",
+			hash: "0",
+			want: []string{
+				"2", // N  (Standard movement North)
+				"3", // NE (Standard movement North-East)
+				"1", // E  (Standard movement East)
+				"1", // SE (Lat clamped at South, Lon moves East -> 1)
+				"0", // S  (Clamped: hitting the South Pole floor, stays at 0)
+				"p", // SW (Lat clamped at South, Lon wraps to East -> p)
+				"p", // W  (Lon wraps to East -> p)
+				"r", // NW (Lat moves North, Lon wraps to East -> r)
+			},
 			wantError: assert.NoError,
 		},
 		{
-			name:      "Extremes z - At limit of latitude and longitude",
-			hash:      "z",
-			want:      []string{"p", "0", "b", "8", "x", "w", "y", "n"},
+			name: "Extremes z - At limit of latitude and longitude (Low Precision)",
+			hash: "z",
+			want: []string{
+				"z", // N  (Clamped at North)
+				"b", // NE (Lat clamped, Lon wrapped)
+				"b", // E  (Lon wrapped)
+				"8", // SE (Lon wrapped, Lat down)
+				"x", // S  (Standard down)
+				"w", // SW (Standard down-left)
+				"y", // W  (Standard left)
+				"y", // NW (Lat clamped, Lon left)
+			},
 			wantError: assert.NoError,
 		},
 	}
@@ -835,7 +862,7 @@ func TestMustNeighbors(t *testing.T) {
 		{
 			name:        "Extremes z - At limit of latitude and longitude",
 			args:        args{hash: "z"},
-			want:        []string{"p", "0", "b", "8", "x", "w", "y", "n"},
+			want:        []string{"z", "b", "b", "8", "x", "w", "y", "y"},
 			expectPanic: false,
 		},
 	}
