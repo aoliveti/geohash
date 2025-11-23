@@ -99,41 +99,8 @@ var (
 	ErrDirectionOutOfRange = errors.New("direction out of range")
 )
 
-// alphabetMap maps byte characters to corresponding index.
-var alphabetMap = map[int32]uint64{
-	'0': 0,
-	'1': 1,
-	'2': 2,
-	'3': 3,
-	'4': 4,
-	'5': 5,
-	'6': 6,
-	'7': 7,
-	'8': 8,
-	'9': 9,
-	'b': 10,
-	'c': 11,
-	'd': 12,
-	'e': 13,
-	'f': 14,
-	'g': 15,
-	'h': 16,
-	'j': 17,
-	'k': 18,
-	'm': 19,
-	'n': 20,
-	'p': 21,
-	'q': 22,
-	'r': 23,
-	's': 24,
-	't': 25,
-	'u': 26,
-	'v': 27,
-	'w': 28,
-	'x': 29,
-	'y': 30,
-	'z': 31,
-}
+// decodeMap is a static lookup table for fast Base32 decoding.
+var decodeMap [256]byte
 
 type (
 	// Precision GeoHash precision Levels
@@ -150,6 +117,18 @@ type (
 		MaxLongitude float64
 	}
 )
+
+func init() {
+	// Initialize the map with a sentinel value (0xFF) to represent invalid characters.
+	for i := range decodeMap {
+		decodeMap[i] = 0xFF
+	}
+
+	// Populate the map with valid alphabet indices.
+	for i := 0; i < len(alphabet); i++ {
+		decodeMap[alphabet[i]] = byte(i)
+	}
+}
 
 // Encode generates a GeoHash string for the given latitude, longitude, and precision.
 // Returns an error if the latitude, longitude, or precision is out of the valid range.
@@ -281,8 +260,7 @@ func Neighbor(hash string, direction Direction) (string, error) {
 	d := directionDeltas[direction]
 	lat, lng := wrapCoordinates(latitude+d.lat, longitude+d.lon)
 
-	neighborHash := MustEncode(lat, lng, Precision(len(hash)))
-	return neighborHash, nil
+	return Encode(lat, lng, Precision(len(hash)))
 }
 
 // MustNeighbor returns the neighboring GeoHash in a given direction, panicking if an error occurs during lookup.
@@ -299,14 +277,45 @@ func MustNeighbor(hash string, direction Direction) string {
 // SE, S, SW, W, NW.
 // Returns an error if the input is invalid.
 func Neighbors(hash string) ([]string, error) {
-	results := make([]string, 8)
-	for dir := N; dir <= NW; dir++ {
-		n, err := Neighbor(hash, dir)
-		if err != nil {
-			return nil, err
-		}
-		results[dir] = n
+	// Decode
+	lat, lng, err := Decode(hash)
+	if err != nil {
+		return nil, err
 	}
+
+	// Pre-calculate Deltas
+	precision := Precision(len(hash))
+	totalBits := precision * bitsPerChar
+	latitudeBits := totalBits / 2
+	longitudeBits := totalBits / 2
+	if totalBits%2 != 0 {
+		longitudeBits++
+	}
+
+	deltaLat := math.Ldexp(180.0, int(-latitudeBits))
+	deltaLng := math.Ldexp(360.0, int(-longitudeBits))
+
+	// Generate Neighbors
+	results := make([]string, 8)
+
+	// Direction mapping
+	deltas := []struct{ dLat, dLon float64 }{
+		{deltaLat, 0},          // N
+		{deltaLat, deltaLng},   // NE
+		{0, deltaLng},          // E
+		{-deltaLat, deltaLng},  // SE
+		{-deltaLat, 0},         // S
+		{-deltaLat, -deltaLng}, // SW
+		{0, -deltaLng},         // W
+		{deltaLat, -deltaLng},  // NW
+	}
+
+	for i, d := range deltas {
+		nLat, nLng := wrapCoordinates(lat+d.dLat, lng+d.dLon)
+
+		results[i] = MustEncode(nLat, nLng, precision)
+	}
+
 	return results, nil
 }
 
@@ -345,12 +354,14 @@ func encodeCoordinateBitset(leftBound, rightBound, value float64, isLongitude bo
 	return bitset
 }
 
-func decodeCoordinateBitset(bitset uint64, isLongitude bool, precision Precision) (max, min, center float64) {
+// decodeCoordinateBitset decodes the bitset into a coordinate range (min, max) and a center point.
+func decodeCoordinateBitset(bitset uint64, isLongitude bool, precision Precision) (min, max, center float64) {
 	leftBound := minLatitude
 	rightBound := maxLatitude
 
 	totalBits := int(precision) * bitsPerChar
 	bitsToProcess := totalBits / 2
+
 	if isLongitude {
 		leftBound = minLongitude
 		rightBound = maxLongitude
@@ -372,6 +383,7 @@ func decodeCoordinateBitset(bitset uint64, isLongitude bool, precision Precision
 		}
 	}
 
+	// leftBound is the lower limit (min), rightBound is the upper limit (max).
 	return leftBound, rightBound, (leftBound + rightBound) / 2.0
 }
 
@@ -434,35 +446,42 @@ func encodeToBase32(bitset uint64, precision Precision) string {
 	return string(buf[:p])
 }
 
-// decodeFromBase32 decodes a Base32 GeoHash string into a bitset, its precision, or an error on invalid input.
+// decodeFromBase32 decodes a Base32 GeoHash string into a bitset.
 func decodeFromBase32(hash string) (uint64, Precision, error) {
 	var bitset uint64
-	for _, char := range hash {
-		index, ok := alphabetMap[char]
-		if !ok {
+
+	for i := 0; i < len(hash); i++ {
+		// Fast array lookup
+		val := uint64(decodeMap[hash[i]])
+
+		// Check for the sentinel value (0xFF) indicating an invalid character.
+		if val == 0xFF {
 			return 0, 0, ErrInvalidHashFormat
 		}
 
 		bitset <<= bitsPerChar
-		bitset |= index
+		bitset |= val
 	}
 
 	return bitset, Precision(len(hash)), nil
 }
 
-// wrapCoordinates adjusts latitude and longitude values to ensure they fall within their valid ranges: [-90, 90] and [-180, 180].
+// wrapCoordinates normalizes latitude and longitude.
+// Longitude wraps (-180 to 180). Latitude is clamped (-90 to 90).
 func wrapCoordinates(lat, lon float64) (float64, float64) {
-	lat = math.Mod(lat+maxLatitude, 2*maxLatitude)
-	if lat < 0 {
-		lat += 2 * maxLatitude
-	}
-	lat -= maxLatitude
-
+	// Wrap Longitude
 	lon = math.Mod(lon+maxLongitude, 2*maxLongitude)
 	if lon < 0 {
 		lon += 2 * maxLongitude
 	}
 	lon -= maxLongitude
+
+	// Clamp Latitude
+	if lat > maxLatitude {
+		lat = maxLatitude
+	} else if lat < minLatitude {
+		lat = minLatitude
+	}
 
 	return lat, lon
 }

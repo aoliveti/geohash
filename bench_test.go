@@ -98,25 +98,25 @@ func BenchmarkNeighbourPrecisionSubPoint(b *testing.B) {
 	}
 }
 
-func BenchmarkNeighboursPrecisionGlobal(b *testing.B) {
+func BenchmarkNeighborsPrecisionGlobal(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_, _ = Neighbors("9")
 	}
 }
 
-func BenchmarkNeighboursPrecisionCity(b *testing.B) {
+func BenchmarkNeighborsPrecisionCity(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_, _ = Neighbors("9q8yy")
 	}
 }
 
-func BenchmarkNeighboursPrecisionBlock(b *testing.B) {
+func BenchmarkNeighborsPrecisionBlock(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_, _ = Neighbors("9q8yyk8y")
 	}
 }
 
-func BenchmarkNeighboursPrecisionSubPoint(b *testing.B) {
+func BenchmarkNeighborsPrecisionSubPoint(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_, _ = Neighbors("9q8yyk8ypd23")
 	}

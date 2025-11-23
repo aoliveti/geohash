@@ -47,7 +47,7 @@ func Neighbor(hash string, direction Direction) (string, error)
 ```
 Finds the adjacent geohash in a given direction.  
 
-### Neighbours
+### Neighbors
 ```go
 func Neighbors(hash string) ([]string, error)
 ```
@@ -122,34 +122,35 @@ func main() {
 ```text
 goos: darwin
 goarch: amd64
-pkg: geohash
+pkg: github.com/aoliveti/geohash
 cpu: Intel(R) Core(TM) i5-7360U CPU @ 2.30GHz
-BenchmarkEncodePrecisionGlobal-4                46509464                24.95 ns/op            0 B/op          0 allocs/op
-BenchmarkEncodePrecisionStreet-4                 7434326               148.2 ns/op             8 B/op          1 allocs/op
-BenchmarkEncodePrecisionHouse-4                  5502320               205.9 ns/op            16 B/op          1 allocs/op
-BenchmarkEncodePrecisionSubPoint-4               4425508               278.1 ns/op            16 B/op          1 allocs/op
+BenchmarkEncodePrecisionGlobal-4                45100946                23.69 ns/op            0 B/op          0 allocs/op
+BenchmarkEncodePrecisionStreet-4                 8274196               141.5 ns/op             8 B/op          1 allocs/op
+BenchmarkEncodePrecisionHouse-4                  5921347               199.3 ns/op            16 B/op          1 allocs/op
+BenchmarkEncodePrecisionSubPoint-4               4427629               280.4 ns/op            16 B/op          1 allocs/op
 
-BenchmarkDecodePrecisionGlobal-4                38196273                32.83 ns/op            0 B/op          0 allocs/op
-BenchmarkDecodePrecisionStreet-4                 8365387               152.7 ns/op             0 B/op          0 allocs/op
-BenchmarkDecodePrecisionHouse-4                  5479942               226.1 ns/op             0 B/op          0 allocs/op
-BenchmarkDecodePrecisionSubPoint-4               3926744               315.1 ns/op             0 B/op          0 allocs/op
+BenchmarkDecodePrecisionGlobal-4                45866013                21.86 ns/op            0 B/op          0 allocs/op
+BenchmarkDecodePrecisionStreet-4                11939612                99.55 ns/op            0 B/op          0 allocs/op
+BenchmarkDecodePrecisionHouse-4                  8022915               149.3 ns/op             0 B/op          0 allocs/op
+BenchmarkDecodePrecisionSubPoint-4               5940921               201.7 ns/op             0 B/op          0 allocs/op
 
-BenchmarkDecodeBBoxPrecisionGlobal-4            37767790                33.75 ns/op            0 B/op          0 allocs/op
-BenchmarkDecodeBBoxPrecisionStreet-4             7945538               140.8 ns/op             0 B/op          0 allocs/op
-BenchmarkDecodeBBoxPrecisionHouse-4              5773412               217.3 ns/op             0 B/op          0 allocs/op
-BenchmarkDecodeBBoxPrecisionSubPoint-4           3792211               298.8 ns/op             0 B/op          0 allocs/op
+BenchmarkDecodeBBoxPrecisionGlobal-4            53141138                22.25 ns/op            0 B/op          0 allocs/op
+BenchmarkDecodeBBoxPrecisionStreet-4            11948359                98.76 ns/op            0 B/op          0 allocs/op
+BenchmarkDecodeBBoxPrecisionHouse-4              7960542               148.7 ns/op             0 B/op          0 allocs/op
+BenchmarkDecodeBBoxPrecisionSubPoint-4           5864090               202.6 ns/op             0 B/op          0 allocs/op
 
-BenchmarkNeighbourPrecisionGlobal-4             13688127                92.74 ns/op            0 B/op          0 allocs/op
-BenchmarkNeighbourPrecisionCity-4                4459608               267.5 ns/op             5 B/op          1 allocs/op
-BenchmarkNeighbourPrecisionBlock-4               2901146               421.7 ns/op             8 B/op          1 allocs/op
-BenchmarkNeighbourPrecisionSubPoint-4            1776609               638.6 ns/op            16 B/op          1 allocs/op
+BenchmarkNeighbourPrecisionGlobal-4             18967950                61.04 ns/op            0 B/op          0 allocs/op
+BenchmarkNeighbourPrecisionCity-4                5318504               224.0 ns/op             5 B/op          1 allocs/op
+BenchmarkNeighbourPrecisionBlock-4               3469327               340.6 ns/op             8 B/op          1 allocs/op
+BenchmarkNeighbourPrecisionSubPoint-4            2381121               497.5 ns/op            16 B/op          1 allocs/op
 
-BenchmarkNeighboursPrecisionGlobal-4             1344180               830.5 ns/op           128 B/op          1 allocs/op
-BenchmarkNeighboursPrecisionCity-4                406406              2632 ns/op             170 B/op          9 allocs/op
-BenchmarkNeighboursPrecisionBlock-4               323782              3684 ns/op             192 B/op          9 allocs/op
-BenchmarkNeighboursPrecisionSubPoint-4            194656              6200 ns/op             256 B/op          9 allocs/op
+BenchmarkNeighborsPrecisionGlobal-4             3441564               351.8 ns/op           128 B/op          1 allocs/op
+BenchmarkNeighborsPrecisionCity-4                756705              1347 ns/op             170 B/op          9 allocs/op
+BenchmarkNeighborsPrecisionBlock-4               536829              1970 ns/op             192 B/op          9 allocs/op
+BenchmarkNeighborsPrecisionSubPoint-4            399649              2808 ns/op             256 B/op          9 allocs/op
+
 PASS
-ok      geohash 29.995s
+ok      github.com/aoliveti/geohash     26.838s
 ```
 
 ## License
